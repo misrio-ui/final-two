@@ -101,11 +101,11 @@
  }  
  }  
  ];  
- let songList = []; // Active list of track objects  
- let currentSong = null; // Currently playing song  
- let isPlaying = false; // Audio playback state  
+ let songList = []; 
+ let currentSong = null;
+ let isPlaying = false; 
  let durationSortDescending = false;
- let rankSortDescending = true;
+ let rankSortDescending = true;  //มากไปน้อย
  let currentListType = 'songs';
  let popularAlbumList = [];
  let popularArtistList = [];
@@ -113,34 +113,25 @@
  const DEEZER_CHART_SIZE = 100;
  const DEEZER_ALBUM_SIZE = 50;
 
-
  // DOM Element References  
- const audioEngine = document.getElementById('audio-engine');  
- const songListContainer = document.getElementById('song-list-container');  
- const playIcon = document.getElementById('play-icon');  
- const vinylRecord = document.getElementById('vinyl-record');  
- const vinylCover = document.getElementById('vinyl-cover');  
- const audioProgress = document.getElementById('audio-progress');  
- const currentTimeTxt = document.getElementById('current-time-txt');  
- const totalTimeTxt = document.getElementById('total-time-txt');  
+ const audioEngine = document.getElementById('audio-engine');  //เครื่องเล่นเสียง
+ const songListContainer = document.getElementById('song-list-container');  //พื้นที่แสดงรายการเพลง
+ const playIcon = document.getElementById('play-icon');  //ไอคอนปุ่มเล่นหรือหยุด
+ const vinylRecord = document.getElementById('vinyl-record');  //ภาพแผ่นเสียงที่อาจมีแอนิเมชันตอนเล่น
+ const vinylCover = document.getElementById('vinyl-cover');  //ภาพปกอัลบั้มบนแผ่นเสียง
+ const audioProgress = document.getElementById('audio-progress');  //แถบแสดงความคืบหน้าของเพลง
+ const currentTimeTxt = document.getElementById('current-time-txt');  //ข้อความบอกเวลาที่เล่นไปแล้ว
+ const totalTimeTxt = document.getElementById('total-time-txt');  // ข้อความบอกความยาวทั้งหมดของเพลง
+//*******************************************************************************************************************************/
  function requestDeezerApi(endpoint) {
- return new Promise((resolve, reject) => {
- const callbackName = `deezerJsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
- const script = document.createElement('script');
- const timeoutId = setTimeout(() => finish(reject, new Error('Deezer API request timed out')), 10000);
-
- function finish(callback, value) {
- clearTimeout(timeoutId);
- delete window[callbackName];
- script.remove();
- callback(value);
- }
-
- window[callbackName] = data => finish(resolve, data);
- script.onerror = () => finish(reject, new Error('Deezer API request failed'));
- const separator = endpoint.includes('?') ? '&' : '?';
- script.src = `https://api.deezer.com/${endpoint}${separator}output=jsonp&callback=${callbackName}`;
- document.head.appendChild(script);
+ return fetch(`/api/deezer/${endpoint}`, {
+  headers: { Accept: 'application/json' },
+  signal: AbortSignal.timeout(10000)
+ }).then(response => {
+  if (!response.ok) {
+   throw new Error(`API request failed (${response.status})`);
+  }
+  return response.json();
  });
  }
  function requestDeezerSearch(searchQuery) {
@@ -166,7 +157,7 @@
  function requestDeezerArtistTop(artistId) {
  return requestDeezerApi(`artist/${artistId}/top?index=0&limit=${DEEZER_PAGE_SIZE}`);
  }
-
+ //********************************************************************** */
  async function loadDeezerData(searchQuery = 'music', source = 'search', itemId = null) {
   showToast("กำลังดึงข้อมูลจาก Deezer API...", "info");
 
@@ -580,6 +571,7 @@ onclick="selectSongById(${song.id}, true)"
  button.classList.toggle('text-neutral-900', !selected);
  });
  }
+ //********************************************************************************************************************************/
  function playAudio() {  
  if (!currentSong) return;  
  if (!currentSong.preview) {  
