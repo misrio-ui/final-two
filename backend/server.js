@@ -94,6 +94,10 @@ app.use('/api/deezer', async (req, res) => {
   }
 });
 
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'ไม่พบ API endpoint ที่ร้องขอ', code: 'API_NOT_FOUND' });
+});
+
 const distDirectory = path.join(__dirname, '..', 'frontend', 'dist');
 const staticDirectory = fs.existsSync(distDirectory)
   ? distDirectory

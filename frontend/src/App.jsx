@@ -10,7 +10,11 @@ const api = async (endpoint) => {
   });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.error || `API request failed (${response.status})`);
+    const apiError = body?.error;
+    const message = typeof apiError === 'string'
+      ? apiError
+      : apiError?.message || apiError?.code || `API request failed (${response.status})`;
+    throw new Error(message);
   }
   return response.json();
 };
