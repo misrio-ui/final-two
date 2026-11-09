@@ -9,9 +9,20 @@ const CACHE_TTL_MS = 60 * 1000;
 const responseCache = new Map();
 const cacheStats = { hits: 0, misses: 0 };
 
+const cleanupExpiredCache = () => {
+  const now = Date.now();
+  for (const [key, cached] of responseCache) {
+    if (cached.expiresAt <= now) responseCache.delete(key);
+  }
+};
+
+const cacheCleanupTimer = setInterval(cleanupExpiredCache, CACHE_TTL_MS);
+if (typeof cacheCleanupTimer.unref === 'function') cacheCleanupTimer.unref();
+
 app.disable('x-powered-by');
 
 app.get('/api/health', (_req, res) => {
+  cleanupExpiredCache();
   res.json({
     status: 'ok',
     service: 'deezer-music-player',
@@ -49,6 +60,7 @@ app.use('/api/deezer', async (req, res) => {
   }
 
   try {
+    cleanupExpiredCache();
     const cacheKey = deezerUrl.toString();
     const cached = responseCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
@@ -82,7 +94,7 @@ app.use('/api/deezer', async (req, res) => {
   }
 });
 
-const distDirectory = path.join(__dirname, 'dist');
+const distDirectory = path.join(__dirname, '..', 'frontend', 'dist');
 const staticDirectory = fs.existsSync(distDirectory)
   ? distDirectory
   : path.join(__dirname);

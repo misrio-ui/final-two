@@ -5,12 +5,10 @@ export default function Header({
   view,
   query,
   favoritesCount,
+  label,
+  itemCount,
   onQueryChange,
   onSearch,
-  onSongs,
-  onArtists,
-  onAlbums,
-  onSort,
   onFavorites,
 }) {
   const placeholder = view === 'artists'
@@ -22,16 +20,16 @@ export default function Header({
   return (
     <header>
       <nav aria-label="ประเภทข้อมูล">
-        <button className={view === 'songs' ? 'active' : ''} onClick={onSongs}>
-          <i className="fa-solid fa-music" /> เพลง
+        <button className="nav-arrow" type="button" aria-label="ย้อนกลับ" title="ย้อนกลับ" onClick={() => window.history.back()}>
+          <i className="fa-solid fa-chevron-left" />
         </button>
-        <button className={view === 'artists' ? 'active' : ''} onClick={onArtists}>
-          <i className="fa-solid fa-microphone" /> นักร้อง
+        <button className="nav-arrow" type="button" aria-label="ไปข้างหน้า" title="ไปข้างหน้า" onClick={() => window.history.forward()}>
+          <i className="fa-solid fa-chevron-right" />
         </button>
-        <button className={view === 'albums' ? 'active' : ''} onClick={onAlbums}>
-          <i className="fa-solid fa-layer-group" /> อัลบั้ม
-        </button>
-        <button className="sort-button" disabled={view !== 'songs'} onClick={onSort}>ยอดวิว</button>
+        <div className="header-list-summary">
+          <span className="label">{label}</span>
+          <span className="count">({itemCount} รายการ)</span>
+        </div>
       </nav>
       <div className="header-actions">
         <SearchBox

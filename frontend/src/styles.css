@@ -5,6 +5,18 @@ button { cursor: pointer; }
 .app-shell { width: min(1180px, calc(100% - 32px)); margin: 24px auto; padding: 20px; background: #e5e5e5; border-radius: 24px; }
 header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
 nav { display: flex; flex-wrap: wrap; gap: 8px; }
+nav { align-items: center; }
+.nav-arrow { width: 44px; height: 44px; padding: 0; }
+.header-list-summary { min-width: 0; display: flex; align-items: center; gap: 8px; margin-left: 4px; }
+.header-list-summary .label { color: white; }
+.header-list-summary .count {
+  margin-left: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #404040;
+  font-weight: 600;
+}
 nav button, .view-button { border: 0; border-radius: 999px; padding: 10px 16px; background: #525252; color: white; font-weight: 600; }
 nav button.active { background: #171717; }
 nav .sort-button { background: white; color: #171717; font-size: 13px; }
@@ -20,6 +32,11 @@ main { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
 .list-panel, .detail-panel, .player-panel { background: #262626; border-radius: 24px; box-shadow: 0 12px 28px rgba(0,0,0,.12); }
 .list-panel { height: 580px; padding: 16px; }
 .panel-heading { height: 48px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,.12); }
+.panel-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.panel-actions button { border: 0; border-radius: 999px; padding: 7px 10px; background: #525252; color: white; font-size: 12px; }
+.panel-actions button.active { background: #171717; }
+.panel-actions .sort-button { background: white; color: #171717; }
+.panel-actions button:disabled { opacity: .45; cursor: not-allowed; }
 .label, .sort-status { background: rgba(64,64,64,.8); border-radius: 7px; padding: 5px 8px; font-size: 12px; }
 .count { margin-left: 8px; color: #d4d4d4; font-size: 12px; }
 .cards { height: calc(100% - 48px); overflow-y: auto; padding-right: 6px; display: grid; gap: 10px; align-content: start; }
@@ -37,6 +54,14 @@ main { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
 .status { height: 120px; display: flex; align-items: center; justify-content: center; gap: 8px; color: #e5e5e5; }
 .status.error { color: #fecaca; }
 .status.empty { grid-column: 1/-1; }
+.artist-detail { height: calc(100% - 48px); display: grid; grid-template-columns: 180px minmax(0, 1fr); align-items: center; gap: 24px; padding: 16px; }
+.artist-detail-cover { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; }
+.artist-detail-info small { color: #d4d4d4; }
+.artist-detail-info h2 { margin: 6px 0 18px; font-size: 28px; }
+.artist-detail-stats { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 12px; }
+.artist-detail-stats div { display: flex; flex-direction: column; border-radius: 14px; background: #404040; padding: 16px; }
+.artist-detail-stats strong { font-size: 26px; }
+.artist-detail-stats span { color: #d4d4d4; font-size: 12px; }
 .player-column { height: 580px; display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
 .detail-panel { padding: 20px; }
 .detail-panel small { color: #d4d4d4; letter-spacing: 2px; }
@@ -44,6 +69,8 @@ main { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
 .detail-panel p { margin: 3px 0; color: #e5e5e5; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; border-top: 1px solid rgba(255,255,255,.12); padding-top: 12px; }
 .detail-grid div { display: flex; flex-direction: column; background: #404040; border-radius: 12px; padding: 8px; }
+.detail-grid button { border: 0; text-align: left; color: white; display: flex; flex-direction: column; background: #404040; border-radius: 12px; padding: 8px; }
+.detail-grid button:hover { background: #525252; }
 .detail-grid span { font-size: 11px; color: #d4d4d4; }
 .player-panel { position: relative; padding: 18px 20px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
 .favorite-song-button { position: absolute; top: 14px; right: 14px; z-index: 2; width: 38px; height: 38px; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: white; font-size: 18px; }
@@ -61,6 +88,8 @@ main { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
 .controls .play-button { width: 44px; height: 44px; border-radius: 50%; background: #d4d4d4; color: #171717; }
 @media (max-width: 900px) {
   header { flex-direction: column; align-items: stretch; }
+  header nav { width: 100%; }
+  .header-list-summary { flex: 1; }
   .search-box { width: 100%; }
   .header-actions { width: 100%; }
   main { grid-template-columns: 1fr; }
@@ -77,4 +106,7 @@ main { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
   .song-card img { width: 48px; height: 48px; }
   .song-actions { grid-column: 2; }
   .view-button { grid-column: 2; }
+  .artist-detail { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .artist-detail-cover { width: 140px; height: 140px; }
+  .artist-detail-stats { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
 }

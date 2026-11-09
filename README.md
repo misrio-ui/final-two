@@ -21,7 +21,19 @@ React/Vite UI
   -> Deezer API
 ```
 
-Frontend หลักอยู่ใน `src/`, backend อยู่ใน `server.js`, และ Vite build อยู่ใน `dist/`
+โครงสร้างแยก frontend และ backend:
+
+```text
+frontend/
+  src/
+  index.html
+  vite.config.js
+  dist/
+backend/
+  server.js
+```
+
+Vite build อยู่ใน `frontend/dist/`
 
 ## Component Tree
 
@@ -41,7 +53,7 @@ App
     └── AudioControls
 ```
 
-โค้ด component ที่แยกจริงอยู่ใน [src/components/](src/components/) โดย `App.jsx` เป็นส่วน orchestration ของ state และ API calls
+โค้ด component ที่แยกจริงอยู่ใน [frontend/src/components/](frontend/src/components/) โดย `App.jsx` เป็นส่วน orchestration ของ state และ API calls
 
 ไฟล์ component สำคัญ:
 
@@ -53,27 +65,23 @@ App
 
 | โครงสร้าง/ขั้นตอน | การใช้งาน | ความซับซ้อน | หลักฐาน |
 |---|---|---:|---|
-| `Map` index เพลง | เลือกเพลงและเลื่อนก่อนหน้า/ถัดไปด้วย ID | Lookup `O(1)` โดยเฉลี่ย | `src/App.jsx` ฟังก์ชัน `indexSongs`, `selectSong` |
-| `Map` index Favorites | ตรวจว่าเพลงถูกใจอยู่หรือไม่ | Lookup `O(1)` โดยเฉลี่ย | state `favoriteIndex` ใน `src/App.jsx` และปุ่มหัวใจใน `PlayerPanel` |
-| `Map` อัลบั้ม | รวมอัลบั้มไม่ซ้ำจากชาร์ต | `O(n)` โดยเฉลี่ย | `src/App.jsx` ฟังก์ชัน `loadAlbums` |
-| `Array.sort()` | เรียงยอดนิยมมากไปน้อย/น้อยไปมาก | `O(n log n)` โดยเฉลี่ย | `src/App.jsx` ฟังก์ชัน `sortSongs` |
-| Debounce | รอการพิมพ์ 500 ms ก่อนค้นหา | ลด API calls ระหว่างการพิมพ์ | `searchTimer` ใน `src/App.jsx` |
-| TTL cache ใน Express | Cache response ด้วย URL เป็น key เป็นเวลา 60 วินาที | Lookup ลำดับเฉลี่ย `O(1)` ต่อ cache entry | `responseCache` ใน `server.js` |
+| `Map` index เพลง | เลือกเพลงและเลื่อนก่อนหน้า/ถัดไปด้วย ID | Lookup `O(1)` โดยเฉลี่ย | `frontend/src/App.jsx` ฟังก์ชัน `indexSongs`, `selectSong` |
+| `Map` index Favorites | ตรวจและอัปเดตเพลงที่ถูกใจด้วย ID โดยไม่ใช้ `.some()` | Lookup/insert/delete เฉลี่ย `O(1)` | state `favoriteIndex` และฟังก์ชัน `toggleFavorite` ใน `frontend/src/App.jsx`; ปุ่มหัวใจใน `PlayerPanel.jsx` |
+| `Map` อัลบั้ม | รวมอัลบั้มไม่ซ้ำจากชาร์ต | `O(n)` โดยเฉลี่ย | `frontend/src/App.jsx` ฟังก์ชัน `loadAlbums` |
+| `Array.sort()` | เรียงยอดนิยมมากไปน้อย/น้อยไปมาก | `O(n log n)` โดยเฉลี่ย | `frontend/src/App.jsx` ฟังก์ชัน `sortSongs` |
+| Debounce | รอการพิมพ์ 500 ms ก่อนค้นหา | ลด API calls ระหว่างการพิมพ์ | `searchTimer` ใน `frontend/src/App.jsx` |
+| TTL cache ใน Express | Cache response ด้วย URL เป็น key เป็นเวลา 60 วินาทีและลบ entry ที่หมดอายุอัตโนมัติ | Lookup/lazy cleanup ลำดับเฉลี่ย `O(1)` ต่อ cache entry | `responseCache` และฟังก์ชัน `cleanupExpiredCache` ใน `backend/server.js` |
 
 ตัวเลข Big-O เป็นค่าประมาณ Map lookup จะเป็น average-case ไม่ใช่ worst-case และ JavaScript engine ของ `.sort()` มีขั้นตอนประมาณ `O(n log n)`
 
 ## Before → After และหลักฐานข้อเสนอแนะจากงานแรก
 
-| ข้อเสนอแนะ/ปัญหาก่อนหน้า | ก่อนแก้ | หลังแก้ | หลักฐาน |
-|---|---|---|---|
-| แยก UI ตามประเภทข้อมูล | ค้นหาเดียวส่ง endpoint รวม | แท็บเพลง/นักร้อง/อัลบั้มเรียก endpoint เฉพาะ | `src/App.jsx`, `src/components/Header.jsx` |
-| จำกัดข้อมูล API | ผลลัพธ์และ chart หลายจุดค้างที่ 50 | จำกัดและ normalise ให้เป็น 100 รายการ | `src/App.jsx`, `server.js` |
-| ระบบเรียงที่ไม่จำเป็น | มีตัวเลือกเริ่มต้นและความยาว | เหลือเฉพาะยอดนิยม มาก/น้อย | `src/App.jsx` ฟังก์ชัน `sortSongs` |
-| Request ซ้ำทุก keypress | เรียก API ทุกการพิมพ์ | debounce 500 ms | `src/App.jsx` |
-| API proxy ยังไม่ทำงานจริง | ไม่มี cache/validation | endpoint allowlist, timeout, limit และ TTL cache | `server.js` |
-| ไม่มีสิ่งคงค้างหลัง refresh | Volume รีเซ็ตและไม่มี Favorites | ใช้สอง key ใน `localStorage` | `src/App.jsx` |
-| Array scan สำหรับ Favorites | ใช้ `.some()` และ `.filter()` กับรายการ | เก็บ `favoriteIndex` เป็น `Map` เพิ่ม/ตรวจด้วย ID | `src/App.jsx` |
-| Loading UI ไม่ครบ | ไม่มีรายละเอียดของเหตุผิดพลาด | มี loading, empty, success และ error | `src/components/Status.jsx` |
+| ที่มา | ข้อเสนอแนะ/แนวคิด | ก่อนพัฒนา | หลังพัฒนา | หลักฐานในโค้ด |
+|---|---|---|---|---|
+| อาจารย์แนะนำจากงานแรก | เพิ่ม `package.json` สำหรับ Express | ยังไม่มี `backend/package.json` แยกกำหนด dependency และคำสั่ง backend | เพิ่ม `backend/package.json` ระบุ Express dependency และคำสั่ง `start`/`dev` | `backend/package.json` |
+| อาจารย์แนะนำจากงานแรก | ปรับการค้นหา ไม่ให้ค้นหาได้เฉพาะ Top list | หน้าหลักเน้นแสดง Top list | ค้นหาเพลง นักร้อง และอัลบั้มผ่าน Deezer search endpoints แยกตามประเภท | `frontend/src/App.jsx` ฟังก์ชัน `loadSongs`, `loadArtists`, `loadAlbums` |
+| ทีมคิดเพิ่มเพื่อ UX | เพิ่มปุ่มถูกใจ | ยังไม่มีการบันทึกรายการเพลงโปรด | เพิ่มปุ่ม Favorite และเก็บรายการไว้ใน `localStorage` | `frontend/src/components/PlayerPanel.jsx`, `frontend/src/App.jsx` ฟังก์ชัน `toggleFavorite` |
+| ทีมคิดเพิ่มเพื่อ UX | เพิ่มปุ่มย้อนกลับ | ไม่มีปุ่มย้อนกลับภายใน navigation ของแอป | เพิ่มปุ่มย้อนกลับและจัดการ navigation history เพื่อกลับไปมุมมองก่อนหน้า | `frontend/src/components/Header.jsx`, `frontend/src/App.jsx` ฟังก์ชัน `navigateTo` และ `restoreNavigation` |
 
 ## สถานะ UI
 
@@ -108,8 +116,8 @@ npm.cmd run dev
 
 ## ตารางความรับผิดชอบ
 
-| สมาชิก | หน้าที่หลัก | ไฟล์หลัก |
-|---|---|---|
-| ผู้พัฒนา 1 | React UI, component tree, player และ Favorites | `src/App.jsx`, `src/components/`, `src/styles.css` |
-| ผู้พัฒนา 1 | Express proxy, validation, cache และ error handling | `server.js` |
-| ผู้พัฒนา 1 | README, Big-O, Before/After และการนำเสนอ | `README.md` |
+| สมาชิก | หน้าที่หลัก | ส่วนที่นำเสนอในคลิป | ไฟล์หลัก |
+|---|---|---|---|
+| นางสาวชฎาพร สุวรรณรัตน์ 681310005 | README, Big-O และ Before/After | คนที่ 1: นำเสนอ Before/After และร่วมอธิบาย DSA/Big-O และสรุปผลงาน | `README.md` |
+| นายธนกฤต เจียมจงวัฒนา 681310639 | React UI, component tree, player และ Favorites | คนที่ 2: สาธิต React/UX และร่วมอธิบาย DSA ฝั่ง React | `frontend/src/App.jsx`, `frontend/src/components/`, `frontend/src/styles.css` |
+| นางสาวอรพรรณ มีศรี 681310649 | Express proxy, validation, cache และ error handling | คนที่ 3: อธิบาย Architecture/Express| `backend/server.js` |

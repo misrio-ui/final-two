@@ -34,6 +34,8 @@ export default function App() {
   const [songs, setSongs] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [artists, setArtists] = useState([]);
+  const [artistDetail, setArtistDetail] = useState(null);
+  const [albumDetail, setAlbumDetail] = useState(null);
   const [songIndex, setSongIndex] = useState(() => new Map());
   const [currentSong, setCurrentSong] = useState(null);
   const [query, setQuery] = useState('');
@@ -50,6 +52,11 @@ export default function App() {
   ));
   const audioRef = useRef(null);
   const searchTimer = useRef(null);
+
+  const navigateTo = (view, action, state = {}) => {
+    window.history.pushState({ view, ...state }, '', window.location.href);
+    action();
+  };
 
   const indexSongs = (items) => {
     const index = new Map();
@@ -99,7 +106,7 @@ export default function App() {
       setLabel(nextLabel);
       setSortStatus('');
       setStatus(mapped.length ? 'success' : 'empty');
-      setCurrentSong(mapped[0] || null);
+      if (source !== 'search') setCurrentSong(mapped[0] || null);
     } catch (err) {
       setError(err.message);
       setStatus('error');
@@ -157,6 +164,7 @@ export default function App() {
 
   const loadArtists = async (searchQuery = '') => {
     setView('artists');
+    setArtistDetail(null);
     setStatus('loading');
     setError('');
     try {
@@ -180,12 +188,176 @@ export default function App() {
     }
   };
 
+  const loadArtistDetail = async (artistId) => {
+    setView('artist-detail');
+    setArtistDetail(null);
+    setStatus('loading');
+    setError('');
+    setLabel('ข้อมูลนักร้อง');
+    setCurrentSong(null);
+    setSongs([]);
+
+    try {
+      const [artist, albums, topTracks] = await Promise.all([
+        api(`artist/${artistId}`),
+        api(`artist/${artistId}/albums?limit=100`),
+        api(`artist/${artistId}/top?limit=100`),
+      ]);
+
+      const artistInfo = {
+        ...artist,
+        albumCount: artist.nb_album ?? albums.total ?? albums.data?.length ?? 0,
+        songCount: topTracks.total ?? topTracks.data?.length ?? 0,
+      };
+      const tracks = (topTracks.data || [])
+        .map(mapTrack)
+        .filter((song) => song.preview && song.album?.id !== 302127);
+
+      setArtistDetail(artistInfo);
+      indexSongs(tracks);
+      setSongs(tracks);
+      setCurrentSong(tracks[0] || null);
+      setLabel(`ข้อมูลนักร้อง: ${artist.name}`);
+      setStatus(tracks.length ? 'success' : 'empty');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  };
+
+  const loadArtistAlbums = async (artistId = artistDetail?.id) => {
+    if (!artistId) return;
+    setView('artist-albums');
+    setStatus('loading');
+    setError('');
+    setLabel(`${artistDetail?.name || 'นักร้อง'} · อัลบั้มทั้งหมด`);
+
+    try {
+      const data = await api(`artist/${artistId}/albums?limit=100`);
+      const items = (data.data || []).map((album, index) => ({
+        ...album,
+        position: index + 1,
+        cover_medium: album.cover_medium || album.cover,
+        cover_small: album.cover_small || album.cover,
+        artist: album.artist || artistDetail || {},
+        count: null,
+      }));
+      setAlbums(items);
+      setStatus(items.length ? 'success' : 'empty');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  };
+
+  const loadArtistSongs = async (artistId = artistDetail?.id) => {
+    if (!artistId) return;
+    setView('artist-songs');
+    setStatus('loading');
+    setError('');
+    setLabel(`${artistDetail?.name || 'นักร้อง'} · เพลงทั้งหมด`);
+
+    try {
+      const data = await api(`artist/${artistId}/top?limit=100`);
+      const tracks = (data.data || [])
+        .map(mapTrack)
+        .filter((song) => song.preview && song.album?.id !== 302127);
+      indexSongs(tracks);
+      setSongs(tracks);
+      setCurrentSong(tracks[0] || null);
+      setStatus(tracks.length ? 'success' : 'empty');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  };
+
+  const loadAlbumDetail = async (albumId) => {
+    setView('album-detail');
+    setAlbumDetail(null);
+    setStatus('loading');
+    setError('');
+    setLabel('ข้อมูลอัลบั้ม');
+    setCurrentSong(null);
+
+    try {
+      const album = await api(`album/${albumId}`);
+      const tracks = (album.tracks?.data || [])
+        .map(mapTrack)
+        .filter((song) => song.preview && song.album?.id !== 302127);
+
+      const albumInfo = {
+        ...album,
+        songCount: album.nb_tracks ?? tracks.length,
+      };
+
+      setAlbumDetail(albumInfo);
+      indexSongs(tracks);
+      setSongs(tracks);
+      setLabel(`ข้อมูลอัลบั้ม: ${album.title}`);
+      setStatus(tracks.length ? 'success' : 'empty');
+      setCurrentSong(tracks[0] || null);
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  };
+
+  const loadAlbumSongs = async (albumId = albumDetail?.id) => {
+    if (!albumId) return;
+    setView('album-songs');
+    setStatus('loading');
+    setError('');
+    setLabel(`${albumDetail?.title || 'อัลบั้ม'} · เพลงในอัลบั้ม`);
+
+    try {
+      const album = await api(`album/${albumId}`);
+      const tracks = (album.tracks?.data || [])
+        .map(mapTrack)
+        .filter((song) => song.preview && song.album?.id !== 302127);
+      indexSongs(tracks);
+      setSongs(tracks);
+      setCurrentSong(tracks[0] || null);
+      setAlbumDetail({
+        ...album,
+        songCount: album.nb_tracks ?? tracks.length,
+      });
+      setStatus(tracks.length ? 'success' : 'empty');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  };
+
   useEffect(() => {
     loadSongs();
   }, []);
 
   useEffect(() => {
+    if (!window.history.state?.view) {
+      window.history.replaceState({ view: 'songs' }, '', window.location.href);
+    }
+
+    const restoreNavigation = (event) => {
+      const state = event.state || { view: 'songs' };
+      if (state.view === 'artists') loadArtists(state.query || '');
+      else if (state.view === 'albums') loadAlbums(state.query || '');
+      else if (state.view === 'artist-detail') loadArtistDetail(state.artistId);
+      else if (state.view === 'artist-albums') loadArtistAlbums(state.artistId);
+      else if (state.view === 'artist-songs') loadArtistSongs(state.artistId);
+      else if (state.view === 'album-detail') loadAlbumDetail(state.albumId);
+      else if (state.view === 'album-songs') loadAlbumSongs(state.albumId);
+      else if (state.view === 'favorites') loadFavorites(state.query || '');
+      else loadSongs(state.source || 'chart', state.query || '', state.itemId || null);
+    };
+
+    window.addEventListener('popstate', restoreNavigation);
+    return () => window.removeEventListener('popstate', restoreNavigation);
+  }, []);
+
+  useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (['artist-detail', 'artist-albums', 'artist-songs', 'album-detail', 'album-songs'].includes(view)) return;
     if (!query.trim()) {
       if (view === 'favorites') loadFavorites();
       return;
@@ -211,17 +383,27 @@ export default function App() {
 
   const toggleFavorite = (song) => {
     if (!song) return;
-    const exists = favoriteIndex.has(String(song.id));
-    const next = exists
-      ? favorites.filter((item) => String(item.id) !== String(song.id))
-      : [song, ...favorites];
-    setFavorites(next);
-    if (view === 'favorites') {
-      setSongs(next);
-      indexSongs(next);
-      setLabel('เพลงที่ถูกใจ');
-      setStatus(next.length ? 'success' : 'empty');
+    const songId = String(song.id);
+    const nextIndex = new Map(favoriteIndex);
+    if (nextIndex.has(songId)) nextIndex.delete(songId);
+    else nextIndex.set(songId, song);
+
+    if (!nextIndex.has(songId)) {
+      const reordered = [...nextIndex.values()];
+      setFavoriteIndex(nextIndex);
+      setFavorites(reordered);
+      if (view === 'favorites') {
+        setSongs(reordered);
+        indexSongs(reordered);
+        setLabel('เพลงที่ถูกใจ');
+        setStatus(reordered.length ? 'success' : 'empty');
+      }
+      return;
     }
+
+    const reordered = [song, ...[...nextIndex.values()].filter((item) => String(item.id) !== songId)];
+    setFavoriteIndex(new Map(reordered.map((item) => [String(item.id), item])));
+    setFavorites(reordered);
   };
 
   const loadFavorites = (searchQuery = '') => {
@@ -284,8 +466,30 @@ export default function App() {
     if (view === 'artists') loadArtists(searchQuery);
     else if (view === 'albums') loadAlbums(searchQuery);
     else if (view === 'favorites') loadFavorites(searchQuery);
+    else if (['artist-detail', 'artist-albums', 'artist-songs', 'album-detail', 'album-songs'].includes(view)) return;
     else loadSongs('search', searchQuery);
   };
+
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    if (value.trim()) return;
+    if (view === 'songs' || view === 'favorites') {
+      if (view === 'favorites') loadFavorites();
+      else loadSongs('chart');
+    } else if (view === 'artists') {
+      loadArtists();
+    } else if (view === 'albums') {
+      loadAlbums();
+    }
+  };
+
+  const currentItemCount = view === 'songs' || view === 'favorites'
+    ? songs.length
+    : view === 'artist-detail' || view === 'artist-songs' || view === 'album-detail' || view === 'album-songs'
+      ? songs.length
+      : view === 'artist-albums' || view === 'albums'
+        ? albums.length
+        : artists.length;
 
   return (
     <div className="app-shell">
@@ -293,15 +497,13 @@ export default function App() {
         view={view}
         query={query}
         favoritesCount={favorites.length}
-        onQueryChange={setQuery}
+        label={label}
+        itemCount={currentItemCount}
+        onQueryChange={handleQueryChange}
         onSearch={searchCurrentView}
-        onSongs={() => loadSongs(query.trim() ? 'search' : 'chart', query.trim())}
-        onArtists={() => loadArtists(query.trim())}
-        onAlbums={() => loadAlbums(query.trim())}
-        onSort={sortSongs}
         onFavorites={() => {
           setQuery('');
-          loadFavorites();
+          navigateTo('favorites', () => loadFavorites(), { query: '' });
         }}
       />
       <main>
@@ -314,14 +516,24 @@ export default function App() {
           songs={songs}
           albums={albums}
           artists={artists}
+          artistDetail={artistDetail}
           currentSong={currentSong}
           playing={playing}
           onSelectSong={selectSong}
-          onOpenAlbum={(albumId) => loadSongs('album', '', albumId)}
-          onOpenArtist={(artistId) => loadSongs('artist', '', artistId)}
+          onOpenAlbum={(albumId) => navigateTo('album-detail', () => loadAlbumDetail(albumId), { albumId })}
+          onOpenArtist={(artistId) => navigateTo('artist-detail', () => loadArtistDetail(artistId), { artistId })}
+          onSongs={() => navigateTo('songs', () => loadSongs(query.trim() ? 'search' : 'chart', query.trim()), {
+            source: query.trim() ? 'search' : 'chart',
+            query: query.trim(),
+          })}
+          onArtists={() => navigateTo('artists', () => loadArtists(query.trim()), { query: query.trim() })}
+          onAlbums={() => navigateTo('albums', () => loadAlbums(query.trim()), { query: query.trim() })}
+          onSort={sortSongs}
         />
         <PlayerPanel
           currentSong={currentSong}
+          artistDetail={['artist-detail', 'artist-albums', 'artist-songs'].includes(view) ? artistDetail : null}
+          albumDetail={['album-detail', 'album-songs'].includes(view) ? albumDetail : null}
           playing={playing}
           progress={progress}
           volume={volume}
@@ -337,6 +549,12 @@ export default function App() {
           onVolumeChange={setVolume}
           onMoveSong={moveSong}
           onTogglePlay={togglePlay}
+          onArtistAlbums={() => navigateTo('artist-albums', () => loadArtistAlbums(artistDetail?.id), { artistId: artistDetail?.id })}
+          onArtistSongs={() => navigateTo('artist-songs', () => loadArtistSongs(artistDetail?.id), { artistId: artistDetail?.id })}
+          onSongArtist={() => currentSong?.artist?.id && navigateTo('artist-detail', () => loadArtistDetail(currentSong.artist.id), { artistId: currentSong.artist.id })}
+          onSongAlbum={() => currentSong?.album?.id && navigateTo('album-detail', () => loadAlbumDetail(currentSong.album.id), { albumId: currentSong.album.id })}
+          onAlbumArtist={() => albumDetail?.artist?.id && navigateTo('artist-detail', () => loadArtistDetail(albumDetail.artist.id), { artistId: albumDetail.artist.id })}
+          onAlbumSongs={() => navigateTo('album-songs', () => loadAlbumSongs(albumDetail?.id), { albumId: albumDetail?.id })}
         />
       </main>
       <audio ref={audioRef} preload="metadata" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}

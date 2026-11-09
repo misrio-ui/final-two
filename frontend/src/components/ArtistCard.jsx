@@ -6,7 +6,7 @@ export default function ArtistCard({ artist, onOpen }) {
         <strong>{artist.name}</strong>
         <small>อันดับนักร้อง #{artist.position}</small>
       </div>
-      <button className="view-button" onClick={() => onOpen(artist.id)}>ดูเพลง</button>
+      <button className="view-button" onClick={() => onOpen(artist.id)}>ดูข้อมูล</button>
     </article>
   );
 }

@@ -1,6 +1,7 @@
 export default function PlayerPanel({
-  currentSong, playing, progress, volume, audioRef, favoriteIds,
+  currentSong, artistDetail, albumDetail, playing, progress, volume, audioRef, favoriteIds,
   onToggleFavorite, onProgressChange, onVolumeChange, onMoveSong, onTogglePlay,
+  onArtistAlbums, onArtistSongs, onSongArtist, onSongAlbum, onAlbumArtist, onAlbumSongs,
 }) {
   const isFavorite = currentSong && favoriteIds.has(String(currentSong.id));
   const audioTime = audioRef.current?.currentTime || 0;
@@ -9,13 +10,44 @@ export default function PlayerPanel({
   return (
     <section className="player-column">
       <div className="detail-panel">
-        <small>ข้อมูลรายละเอียดเพลง</small>
-        <h1>{currentSong?.title || 'เลือกเพลงเพื่อฟัง'}</h1>
-        <p>ศิลปิน: {currentSong?.artist?.name || '-'}</p>
-        <p>อัลบั้ม: {currentSong?.album?.title || '-'}</p>
-        <div className="detail-grid">
-          <div><span>ความนิยม</span><strong>{currentSong ? currentSong.rank.toLocaleString() : '-'}</strong></div>
-        </div>
+        <small>{artistDetail ? 'ข้อมูลนักร้อง' : albumDetail ? 'ข้อมูลอัลบั้ม' : 'ข้อมูลรายละเอียดเพลง'}</small>
+        <h1>{artistDetail?.name || albumDetail?.title || currentSong?.title || 'เลือกเพลงเพื่อฟัง'}</h1>
+        {artistDetail ? (
+          <>
+            <p>นักร้อง: {artistDetail.name}</p>
+            <div className="detail-grid">
+              <button type="button" onClick={onArtistAlbums}>
+                <span>จำนวนอัลบั้ม</span><strong>{artistDetail.albumCount.toLocaleString()}</strong>
+              </button>
+              <button type="button" onClick={onArtistSongs}>
+                <span>จำนวนเพลงยอดนิยม</span><strong>{artistDetail.songCount.toLocaleString()}</strong>
+              </button>
+            </div>
+          </>
+        ) : albumDetail ? (
+          <>
+            <p>อัลบั้ม: {albumDetail.title}</p>
+            <div className="detail-grid">
+              <button type="button" onClick={onAlbumArtist}>
+                <span>ศิลปิน</span><strong>{albumDetail.artist?.name || '-'}</strong>
+              </button>
+              <button type="button" disabled={!albumDetail.songCount} onClick={onAlbumSongs}>
+                <span>เพลงในอัลบั้ม</span><strong>{albumDetail.songCount?.toLocaleString() || '0'}</strong>
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="detail-grid">
+              <button type="button" onClick={onSongArtist} disabled={!currentSong?.artist?.id}>
+                <span>ศิลปิน</span><strong>{currentSong?.artist?.name || '-'}</strong>
+              </button>
+              <button type="button" onClick={onSongAlbum} disabled={!currentSong?.album?.id}>
+                <span>อัลบั้ม</span><strong>{currentSong?.album?.title || '-'}</strong>
+              </button>
+            </div>
+          </>
+        )}
       </div>
       <div className="player-panel">
         <button

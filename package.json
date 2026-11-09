@@ -3,26 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "description": "Deezer music browser served with Node.js and Express",
-  "main": "server.js",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "start": "node server.js",
-    "dev": "concurrently \"node --watch server.js\" \"vite --host 0.0.0.0\"",
-    "build": "vite build",
-    "preview": "vite preview",
-    "server": "node server.js",
-    "dev:server": "node --watch server.js"
+    "start": "npm run start -w backend",
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "npm run build -w frontend",
+    "preview": "npm run preview -w frontend",
+    "server": "npm run start -w backend",
+    "dev:server": "npm run dev -w backend"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "dependencies": {
-    "express": "^5.1.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
-  },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.2",
-    "concurrently": "^9.2.1",
-    "vite": "^7.1.4"
+    "concurrently": "^9.2.1"
   }
 }
