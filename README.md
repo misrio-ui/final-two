@@ -92,7 +92,7 @@ App
 
 ## การติดตั้งและรัน
 
-Node.js 18 หรือใหม่กว่า
+Node.js 20.19.0 หรือใหม่กว่า (Vite 7 ต้องการ Node.js เวอร์ชันนี้)
 
 ```powershell
 npm.cmd install
@@ -108,6 +108,10 @@ npm.cmd start
 npm.cmd run dev
 ```
 
+## Deploy บน Vercel
+
+Import repository นี้เข้า Vercel และตั้ง Root Directory เป็นโฟลเดอร์โปรเจกต์หลัก จากนั้น Deploy ได้เลย โดย `vercel.json` กำหนดคำสั่ง build และโฟลเดอร์ `frontend/dist` ไว้แล้ว ส่วน Express API จะให้บริการผ่าน Serverless Function ใน `api/`
+
 ทดสอบ API:
 
 - Health check: `http://localhost:3000/api/health`
@@ -121,13 +125,3 @@ npm.cmd run dev
 | นางสาวชฎาพร สุวรรณรัตน์ 681310005 | README, Big-O และ Before/After | คนที่ 1: เปิดคลิป, อธิบายข้อเสนอแนะจากงานแรกและ Before/After, ร่วมอธิบาย DSA และสรุปผลงาน| `README.md` |
 | นายธนกฤต เจียมจงวัฒนา 681310639 | React UI, component tree, player และ Favorites | คนที่ 2: สาธิต React/UX, อธิบายการค้นหาและฟีเจอร์ที่ทีมเพิ่ม, ร่วมอธิบาย DSA ฝั่ง React | `frontend/src/App.jsx`, `frontend/src/components/`, `frontend/src/styles.css` |
 | นางสาวอรพรรณ มีศรี 681310649 | Express proxy, validation, cache และ error handling | คนที่ 3: อธิบาย Architecture/Express, ร่วมอธิบาย DSA ฝั่ง cache | `backend/server.js` |
-
-### สคริปต์สรุปปิดคลิป (ชฎาพร)
-
-> จุดเริ่มต้นของโปรเจกต์นี้คือการสร้างเว็บไซต์สำหรับค้นหาเพลงยอดนิยม โดยดึงข้อมูลจาก Deezer API ค่ะ จากนั้นพวกเราค่อย ๆ ปรับและต่อยอดตามคำแนะนำของอาจารย์ ทั้งเพิ่ม `package.json` สำหรับ Express และพัฒนาการค้นหาให้ค้นหาเพลง นักร้อง และอัลบั้มได้ ไม่ได้จำกัดอยู่แค่ Top list
->
-> ฝั่ง React เราแยกหน้าที่เป็น components และเพิ่มสถานะ loading, empty, error และ success เพื่อให้ผู้ใช้เข้าใจสิ่งที่เกิดขึ้น ส่วนฟีเจอร์ Favorite และปุ่มย้อนกลับเป็นสิ่งที่ทีมคิดเพิ่มเพื่อให้ใช้งานสะดวกขึ้น ฝั่ง Express ทำหน้าที่เป็น API proxy พร้อมตรวจสอบคำขอ จำกัดข้อมูล ตั้ง timeout และ cache เพื่อลดการเรียก API ซ้ำ
->
-> ในด้านโครงสร้างข้อมูล เราใช้ Map สำหรับค้นหาเพลงและ Favorites รวมถึงจัดกลุ่มอัลบั้ม ใช้การเรียงข้อมูลเพื่อแสดงเพลงตามความนิยม และใช้ debounce เพื่อลดคำขอระหว่างพิมพ์ค่ะ
->
-> จากเว็บค้นหาเพลงยอดนิยมในจุดเริ่มต้น วันนี้โปรเจกต์ได้เติบโตเป็นประสบการณ์ค้นหาและฟังเพลงที่ครบขึ้น เพราะเราไม่ได้แค่เพิ่มฟีเจอร์ แต่ปรับทุกส่วนให้ทำงานร่วมกันได้ดีขึ้น ขอบคุณค่ะ
