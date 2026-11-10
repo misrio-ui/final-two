@@ -122,6 +122,6 @@ Import repository นี้เข้า Vercel และตั้ง Root Direct
 
 | สมาชิก | หน้าที่หลัก | บทบาทและหัวข้อพูดในคลิป | ไฟล์หลัก |
 |---|---|---|---|
-| นางสาวชฎาพร สุวรรณรัตน์ 681310005 | README, Big-O และ Before/After | คนที่ 1: เปิดคลิป, อธิบายข้อเสนอแนะจากงานแรกและ Before/After, ร่วมอธิบาย DSA และสรุปผลงาน| `README.md` |
+| นางสาวชฎาพร สุวรรณรัตน์ 681310005 | README, Big-O และ Before/After | คนที่ 1: เปิดคลิป, อธิบายข้อเสนอแนะจากงานแรกและ Before/After, ร่วมอธิบาย DSA| `README.md` |
 | นายธนกฤต เจียมจงวัฒนา 681310639 | React UI, component tree, player และ Favorites | คนที่ 2: สาธิต React/UX, อธิบายการค้นหาและฟีเจอร์ที่ทีมเพิ่ม, ร่วมอธิบาย DSA ฝั่ง React | `frontend/src/App.jsx`, `frontend/src/components/`, `frontend/src/styles.css` |
-| นางสาวอรพรรณ มีศรี 681310649 | Express proxy, validation, cache และ error handling | คนที่ 3: อธิบาย Architecture/Express, ร่วมอธิบาย DSA ฝั่ง cache | `backend/server.js` |
+| นางสาวอรพรรณ มีศรี 681310649 | Express proxy, validation, cache และ error handling | คนที่ 3: อธิบาย Architecture/Express, ร่วมอธิบาย DSA ฝั่ง cache และสรุปผลงาน| `backend/server.js` |
